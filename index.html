@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            background: #28a745;
+            margin-top: 15px;
+        }
+
+        .download-btn:hover {
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid #f5c6cb;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .info {
+            background: #e7f3ff;
+            color: #004085;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border: 1px solid #b8daff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 AI Image Generator</h1>
+        
+        <div class="info">
+            ℹ️ Enter a detailed description of the image you want to create
+        </div>
+
+        <form id="imageForm">
+            <div class="form-group">
+                <label for="prompt">Image Description *</label>
+                <textarea 
+                    id="prompt" 
+                    placeholder="e.g., A serene mountain landscape at sunset with golden light reflecting off a lake..."
+                    required
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="size">Image Size</label>
+                <select id="size">
+                    <option value="1024x1024">1024 × 1024 (Standard)</option>
+                    <option value="1792x1024">1792 × 1024 (Wide)</option>
+                    <option value="1024x1792">1024 × 1792 (Tall)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="quality">Quality</label>
+                <select id="quality">
+                    <option value="standard">Standard</option>
+                    <option value="hd">HD</option>
+                </select>
+            </div>
+
+            <button type="submit">Generate Image</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your image... This may take a moment</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <img id="generatedImage" src="" alt="Generated Image">
+            <button class="download-btn" id="downloadBtn">Download Image</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('imageForm');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const resultDiv = document.getElementById('result');
+        const generatedImage = document.getElementById('generatedImage');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const prompt = document.getElementById('prompt').value;
+            const size = document.getElementById('size').value;
+            const quality = document.getElementById('quality').value;
+
+            // Reset UI
+            errorDiv.classList.remove('active');
+            resultDiv.classList.remove('active');
+            loadingDiv.classList.add('active');
+            form.querySelector('button').disabled = true;
+
+            try {
+                const response = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt,
+                        size,
+                        quality
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate image');
+                }
+
+                generatedImage.src = data.imageUrl;
+                resultDiv.classList.add('active');
+
+                // Set download link
+                downloadBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = data.imageUrl;
+                    a.download = `generated-image-${Date.now()}.png`;
+                    a.click();
+                };
+
+            } catch (error) {
+                errorDiv.textContent = '❌ ' + error.message;
+                errorDiv.classList.add('active');
+            } finally {
+                loadingDiv.classList.remove('active');
+                form.querySelector('button').disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
